@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import api from './api/posts'
+import { useState, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import AllMeetupsPage from './pages/AllMeetups'
+import FavoritesPage from './pages/Favorites'
+import NewMeetupPage from './pages/NewMeetup'
+import Layout from './components/layout/Layout'
+import NotFound from './components/NotFound'
 
-function App() {
+const App = () => {
+  const [lists, setLists] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  useEffect(() => {
+    const fetchProps = async () => {
+      try {
+        const response = await api.get('/lists')
+        setIsLoading(false)
+        console.log(isLoading)
+        setLists(response.data)
+      } catch (e) {
+        if (e.response) {
+          console.log(e.response.data)
+        } else {
+          console.log(`Error: ${e.message}`)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchProps()
+  }, [isLoading])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <Routes>
+      <Route path="/" exact element={<Layout />}>
+        <Route index element={<AllMeetupsPage isLoading={isLoading} lists={lists} />}></Route>
+        <Route path="new-meetup" element={<NewMeetupPage lists={lists} setLists={setLists} />}></Route>
+        <Route path="favorites" element={<FavoritesPage />}></Route>
+        <Route path="*" element={<NotFound />}></Route>
+      </Route>
+    </Routes>
+  )
 }
 
-export default App;
+export default App
